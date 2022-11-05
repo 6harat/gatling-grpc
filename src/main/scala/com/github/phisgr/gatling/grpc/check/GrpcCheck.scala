@@ -26,4 +26,6 @@ object GrpcCheck {
 
   case object Trailers extends Scope
 
+  case object ResHeaders extends Scope
+
 }

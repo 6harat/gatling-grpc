@@ -40,7 +40,7 @@ class ClientStreamCall[Req, Res](
   private implicit def reqTag: ClassTag[Req] = ClassTag(reqClass)
 
   try {
-    val listener = new Listener
+    val listener = new Listener(headers => {this.resHeaders = headers})
     call.start(listener, headers)
     call.request(2)
   } catch {
@@ -49,9 +49,11 @@ class ClientStreamCall[Req, Res](
   }
 
 
-  class Listener extends ClientCall.Listener[Any] {
+  class Listener(onResHeaders: Metadata => Unit) extends ClientCall.Listener[Any] {
     private[this] var body: Any = _
-    override def onHeaders(headers: Metadata): Unit = {}
+    override def onHeaders(headers: Metadata): Unit = {
+      onResHeaders(headers)
+    }
 
     override def onMessage(message: Any): Unit = {
       if (null != body) {
@@ -76,6 +78,7 @@ class ClientStreamCall[Req, Res](
   private[this] var endTimestamp = 0L
   private[this] var grpcStatus: Status = _
   private[this] var trailers: Metadata = _
+  private[this] var resHeaders: Metadata = _
 
   private def callCompleted = grpcStatus ne null
 
@@ -118,7 +121,7 @@ class ClientStreamCall[Req, Res](
 
   def finishCall(): Unit = {
     val (checkSaveUpdated, checkError) = Check.check(
-      new GrpcResponse(res, grpcStatus, trailers),
+      new GrpcResponse(res, grpcStatus, trailers, resHeaders),
       session,
       checks,
       preparedCache = null
@@ -153,7 +156,7 @@ class ClientStreamCall[Req, Res](
         .appendSession(session)
         .appendWithEol("=========================")
         .appendWithEol("gRPC response:")
-        .appendResponse(bodyParsed, grpcStatus, trailers)
+        .appendResponse(bodyParsed, grpcStatus, trailers, resHeaders)
         .append("<<<<<<<<<<<<<<<<<<<<<<<<<")
         .toString
     }

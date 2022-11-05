@@ -42,9 +42,10 @@ package object util {
       appendWithEol(session)
     }
 
-    def appendResponse(body: Any, status: Status, trailers: Metadata): JStringBuilder = {
+    def appendResponse(body: Any, status: Status, trailers: Metadata, resHeaders: Metadata): JStringBuilder = {
       appendStatus(status)
       appendTrailers(trailers)
+      appendResHeaders(resHeaders)
 
       if (null != body && status.isOk) {
         buff
@@ -75,6 +76,9 @@ package object util {
 
     def appendTrailers(trailers: Metadata): JStringBuilder =
       appendMetadata(trailers, "trailers")
+
+    def appendResHeaders(resHeaders: Metadata): JStringBuilder =
+      appendMetadata(resHeaders, "resHeaders")
 
     private def appendMetadata(metadata: Metadata, headersOrTrailers: String): JStringBuilder = {
       val size = InternalMetadata.headerCount(metadata)
