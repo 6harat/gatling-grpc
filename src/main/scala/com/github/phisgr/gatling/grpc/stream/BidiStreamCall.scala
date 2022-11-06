@@ -51,7 +51,7 @@ class BidiStreamCall[Req, Res](
     } catch {
       case NonFatal(e) =>
         logger.warn("Call failed", e)
-        onServerCompleted(Status.ABORTED.withCause(e), new Metadata(), clock.nowMillis)
+        onServerCompleted(Status.ABORTED.withCause(e), new Metadata(), new Metadata(), clock.nowMillis)
     }
   }
 

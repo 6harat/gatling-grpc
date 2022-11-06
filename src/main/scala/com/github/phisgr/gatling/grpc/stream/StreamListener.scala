@@ -13,7 +13,11 @@ class StreamListener[Res](
   eventLoop: EventLoop,
   ignoreMessage: Boolean
 ) extends ClientCall.Listener[Any] {
-  override def onHeaders(headers: Metadata): Unit = {}
+  private[this] var resHeaders: Metadata = _
+
+  override def onHeaders(headers: Metadata): Unit = {
+    this.resHeaders = headers
+  }
 
   override def onMessage(message: Any): Unit = {
     val receiveTime = clock.nowMillis
@@ -27,7 +31,7 @@ class StreamListener[Res](
   override def onClose(status: Status, trailers: Metadata): Unit = {
     val receiveTime = clock.nowMillis
     if ((status.getCause ne Cancelled) && (status ne Reflections.SHUTDOWN_NOW_STATUS)) {
-      eventLoop.checkAndExecute { () => state.onServerCompleted(status, trailers, receiveTime) }
+      eventLoop.checkAndExecute { () => state.onServerCompleted(status, trailers, resHeaders, receiveTime) }
     }
   }
 }

@@ -78,7 +78,11 @@ package object util {
       appendMetadata(trailers, "trailers")
 
     def appendResHeaders(resHeaders: Metadata): JStringBuilder =
-      appendMetadata(resHeaders, "resHeaders")
+      if (null == resHeaders) {
+        buff
+      } else  {
+        appendMetadata(resHeaders, "resHeaders")
+      }
 
     private def appendMetadata(metadata: Metadata, headersOrTrailers: String): JStringBuilder = {
       val size = InternalMetadata.headerCount(metadata)
