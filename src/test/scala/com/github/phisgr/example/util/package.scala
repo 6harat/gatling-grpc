@@ -10,6 +10,8 @@ package object util {
   val ports = Seq(8081, 8082, 8083)
 
   val TokenHeaderKey = Metadata.Key.of("token", Metadata.ASCII_STRING_MARSHALLER)
+  val CustomResponseHeaderKey = Metadata.Key.of("custom-response-header", Metadata.ASCII_STRING_MARSHALLER)
+  val CustomResponseHeaderValue = "foobar"
   val TokenContextKey = Context.key[String]("token")
   val ErrorResponseKey = ProtoUtils.keyForProto[CustomError]
 

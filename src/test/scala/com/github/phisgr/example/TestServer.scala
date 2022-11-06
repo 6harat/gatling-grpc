@@ -150,18 +150,24 @@ object TestServer extends StrictLogging {
         headers: Metadata,
         next: ServerCallHandler[ReqT, RespT]
       ): ServerCall.Listener[ReqT] = {
+        val delegatedCall = new ForwardingServerCall.SimpleForwardingServerCall[ReqT, RespT](call) {
+          override def sendHeaders(headers: Metadata): Unit = {
+            headers.put(CustomResponseHeaderKey, CustomResponseHeaderValue)
+            super.sendHeaders(headers)
+          }
+        }
         if (
-          call.getMethodDescriptor.getFullMethodName == ChatServiceGrpc.METHOD_GREET.getFullMethodName &&
+          delegatedCall.getMethodDescriptor.getFullMethodName == ChatServiceGrpc.METHOD_GREET.getFullMethodName &&
             ThreadLocalRandom.current().nextInt(100000) == 0
         ) {
           val trailers = new Metadata()
           trailers.put(ErrorResponseKey, CustomError("1 in 100,000 chance!"))
-          call.close(Status.UNAVAILABLE.withDescription("You're unlucky."), trailers)
+          delegatedCall.close(Status.UNAVAILABLE.withDescription("You're unlucky."), trailers)
           new ServerCall.Listener[ReqT] {}
         } else {
           val context = Context.current()
           val newContext = Option(headers.get(TokenHeaderKey)).fold(context)(context.withValue(TokenContextKey, _))
-          Contexts.interceptCall(newContext, call, headers, next)
+          Contexts.interceptCall(newContext, delegatedCall, headers, next)
         }
 
       }

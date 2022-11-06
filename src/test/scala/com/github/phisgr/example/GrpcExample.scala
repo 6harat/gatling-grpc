@@ -118,6 +118,15 @@ class GrpcExample extends Simulation {
               _.findAll is List("Server", "says:", "Hello", "World!")
             )
         )
+        .exec(
+          grpc("Extract header")
+            .rpc(ChatServiceGrpc.METHOD_GREET)
+            .payload(greetPayload)
+            .header(TokenHeaderKey)($("token"))
+            .check(
+              resHeaders(CustomResponseHeaderKey) is CustomResponseHeaderValue
+            )
+        )
     }
     .exec(
       grpc("Extraction crash")
