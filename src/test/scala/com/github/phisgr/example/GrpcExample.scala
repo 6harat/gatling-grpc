@@ -123,9 +123,7 @@ class GrpcExample extends Simulation {
             .rpc(ChatServiceGrpc.METHOD_GREET)
             .payload(greetPayload)
             .header(TokenHeaderKey)($("token"))
-            .check(
-              resHeaders(CustomResponseHeaderKey) is CustomResponseHeaderValue
-            )
+            .check(resHeaders(CustomResponseHeaderKey) is CustomResponseHeaderValue)
         )
     }
     .exec(

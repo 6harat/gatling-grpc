@@ -2,10 +2,9 @@ package com.github.phisgr.example
 
 import java.util.UUID
 import java.util.concurrent.{ThreadLocalRandom, TimeUnit}
-
 import ch.qos.logback.classic.Level
 import com.github.phisgr.example.chat._
-import com.github.phisgr.example.util.{ErrorResponseKey, TokenHeaderKey, tuneLogging}
+import com.github.phisgr.example.util.{CustomResponseHeaderKey, CustomResponseHeaderValue, ErrorResponseKey, TokenHeaderKey, tuneLogging}
 import com.github.phisgr.gatling.generic.SessionCombiner
 import com.github.phisgr.gatling.grpc.Predef._
 import com.github.phisgr.gatling.grpc.protocol.GrpcProtocol
@@ -49,6 +48,7 @@ class StreamingExample extends Simulation {
         .extract(_.username.some)(_ saveAs "previousUsername")
         .sessionCombiner(SessionCombiner.pick("previousUsername"))
         .endCheck(statusCode is Status.Code.OK)
+        .endCheck(resHeaders(CustomResponseHeaderKey).is(CustomResponseHeaderValue))
     )
     .repeat(5) {
       pause(10.seconds)
@@ -67,6 +67,7 @@ class StreamingExample extends Simulation {
     .exec(
       chatCall.connect(ChatServiceGrpc.METHOD_CHAT)
         .endCheck(trailer(ErrorResponseKey).notExists)
+        .endCheck(resHeaders(CustomResponseHeaderKey).is(CustomResponseHeaderValue))
         .endCheck(statusCode is Status.Code.OK)
     )
     .exec(
