@@ -36,6 +36,7 @@ class GrpcExample extends Simulation {
           _.username :~ $("username")
         ))
         .extract(_.token.some)(_ saveAs "token")
+        .check(resHeaders(CustomResponseHeaderKey).notExists)
     )
     .exitHereIfFailed
     .exec(successfulCall)

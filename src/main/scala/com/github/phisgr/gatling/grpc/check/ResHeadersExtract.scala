@@ -22,7 +22,7 @@ private[gatling] object ResHeadersExtract {
           criterion = key.name(),
           occurrence = occurrence,
           extractor = { metadata =>
-            Option(metadata.getAll(key)).flatMap { iterable =>
+            Option(metadata).flatMap(m => Option(m.getAll(key))).flatMap { iterable =>
               val iterator = iterable.iterator().asScala
               iterator.drop(occurrence)
               if (iterator.hasNext) Some(iterator.next()) else None
@@ -33,13 +33,13 @@ private[gatling] object ResHeadersExtract {
         new FindAllCriterionExtractor[Metadata, String, T](
           checkName = "resHeaders",
           criterion = key.name(),
-          extractor = metadata => Option(metadata.getAll(key)).map(_.asScala.toSeq).success
+          extractor = metadata => Option(metadata).flatMap(m => Option(m.getAll(key))).map(_.asScala.toSeq).success
         ).expressionSuccess
       override def countExtractor: Expression[Extractor[Metadata, Int]] =
         new CountCriterionExtractor[Metadata, String](
           checkName = "resHeaders",
           criterion = key.name(),
-          extractor = metadata => Some(metadata.getAll(key) match {
+          extractor = metadata => Option(metadata).flatMap(m => Option(m.getAll(key))).map(m => m match {
             case null => 0
             case iterable => iterable.asScala.size
           }).success
