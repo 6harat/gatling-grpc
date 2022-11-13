@@ -36,6 +36,7 @@ class GrpcExample extends Simulation {
           _.username :~ $("username")
         ))
         .extract(_.token.some)(_ saveAs "token")
+        .check(resHeaders(CustomResponseHeaderKey).notExists)
     )
     .exitHereIfFailed
     .exec(successfulCall)
@@ -117,6 +118,13 @@ class GrpcExample extends Simulation {
               _.find(2) is "Hello",
               _.findAll is List("Server", "says:", "Hello", "World!")
             )
+        )
+        .exec(
+          grpc("Extract header")
+            .rpc(ChatServiceGrpc.METHOD_GREET)
+            .payload(greetPayload)
+            .header(TokenHeaderKey)($("token"))
+            .check(resHeaders(CustomResponseHeaderKey) is CustomResponseHeaderValue)
         )
     }
     .exec(

@@ -22,6 +22,9 @@ trait GrpcCheckSupport {
   def trailer[T](key: Metadata.Key[T]): DefaultMultipleFindCheckBuilder[TrailersExtract, Metadata, T] =
     TrailersExtract.trailer(key)
 
+  def resHeaders[T](key: Metadata.Key[T]): DefaultMultipleFindCheckBuilder[ResHeadersExtract, Metadata, T] =
+    ResHeadersExtract.extract(key)
+
   implicit def resMat[Res]: CheckMaterializer[ResponseExtract, GrpcCheck[Res], GrpcResponse[Res], Res] =
     ResponseMaterializers.materializer[Res]
 
@@ -30,6 +33,9 @@ trait GrpcCheckSupport {
 
   implicit val trailersMat: CheckMaterializer[TrailersExtract, GrpcCheck[Any], GrpcResponse[Any], Metadata] =
     TrailersExtract.Materializer
+
+  implicit val resHeadersMat: CheckMaterializer[ResHeadersExtract, GrpcCheck[Any], GrpcResponse[Any], Metadata] =
+    ResHeadersExtract.Materializer
 
   // The contravarianceHelper is needed because without it, the implicit conversion does not turn
   // CheckBuilder[StatusExtract, GrpcResponse[Any], X] into a GrpcCheck[Res]

@@ -16,6 +16,9 @@ trait StreamingCheckSupport {
   implicit val streamTrailersMat: CheckMaterializer[TrailersExtract, StreamCheck[GrpcStreamEnd], GrpcStreamEnd, Metadata] =
     TrailersExtract.StreamMaterializer
 
+  implicit val streamResHeadersMat: CheckMaterializer[ResHeadersExtract, StreamCheck[GrpcStreamEnd], GrpcStreamEnd, Metadata] =
+    ResHeadersExtract.StreamMaterializer
+
   implicit def checkBuilder2GrpcCheck[A, P, X, Res](checkBuilder: CheckBuilder[A, P, X])(
     implicit materializer: CheckMaterializer[A, StreamCheck[Res], Res, P]
   ): StreamCheck[Res] =

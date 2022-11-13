@@ -1,3 +1,6 @@
+#### 0.10.2
+Adding support for extracting responseHeaders.
+
 #### 0.10.1
 `DynamicGrpcProtocol.disposeChannel` for closing the dynamic channel early.
 

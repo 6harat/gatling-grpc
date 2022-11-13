@@ -115,10 +115,10 @@ abstract class StreamCall[Req, Res, State >: ServerStreamState](
     logger.trace(dump)
   }
 
-  def onServerCompleted(grpcStatus: Status, trailers: Metadata, completeTimeMillis: Long): Unit = {
+  def onServerCompleted(grpcStatus: Status, trailers: Metadata, resHeaders: Metadata, completeTimeMillis: Long): Unit = {
     state = Completed(grpcStatus, trailers)
     val (newSession, checkError) = Check.check(
-      new GrpcResponse(null, grpcStatus, trailers),
+      new GrpcResponse(null, grpcStatus, trailers, null),
       streamSession,
       endChecks,
       preparedCache = null
@@ -141,6 +141,7 @@ abstract class StreamCall[Req, Res, State >: ServerStreamState](
         .appendWithEol("gRPC stream completion:")
         .appendStatus(grpcStatus)
         .appendTrailers(trailers)
+        .appendResHeaders(resHeaders)
         .append("<<<<<<<<<<<<<<<<<<<<<<<<<")
         .toString
     }

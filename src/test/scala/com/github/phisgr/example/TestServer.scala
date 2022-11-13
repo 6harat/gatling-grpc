@@ -142,26 +142,39 @@ object TestServer extends StrictLogging {
       }
     }
 
-    // normally, it just adds the "token" header, if any, to the context
-    // but for demo purpose, it fails the call with 0.001% chance
+    // normally, it just:
+    // 1. adds the "token" header, if any, to the context
+    // 2. adds the response header for all RPCs except Register
+    // 3. for demo purpose, it fails the call with 0.001% chance
     val interceptor = new ServerInterceptor {
       override def interceptCall[ReqT, RespT](
         call: ServerCall[ReqT, RespT],
         headers: Metadata,
         next: ServerCallHandler[ReqT, RespT]
       ): ServerCall.Listener[ReqT] = {
+        val delegatedCall = if (call.getMethodDescriptor.getFullMethodName != ChatServiceGrpc.METHOD_REGISTER.getFullMethodName) {
+          new ForwardingServerCall.SimpleForwardingServerCall[ReqT, RespT](call) {
+            override def sendHeaders(responseHeaders: Metadata): Unit = {
+              responseHeaders.put(CustomResponseHeaderKey, CustomResponseHeaderValue)
+              super.sendHeaders(responseHeaders)
+            }
+          }
+        } else {
+          call
+        }
+
         if (
-          call.getMethodDescriptor.getFullMethodName == ChatServiceGrpc.METHOD_GREET.getFullMethodName &&
+          delegatedCall.getMethodDescriptor.getFullMethodName == ChatServiceGrpc.METHOD_GREET.getFullMethodName &&
             ThreadLocalRandom.current().nextInt(100000) == 0
         ) {
           val trailers = new Metadata()
           trailers.put(ErrorResponseKey, CustomError("1 in 100,000 chance!"))
-          call.close(Status.UNAVAILABLE.withDescription("You're unlucky."), trailers)
+          delegatedCall.close(Status.UNAVAILABLE.withDescription("You're unlucky."), trailers)
           new ServerCall.Listener[ReqT] {}
         } else {
           val context = Context.current()
           val newContext = Option(headers.get(TokenHeaderKey)).fold(context)(context.withValue(TokenContextKey, _))
-          Contexts.interceptCall(newContext, call, headers, next)
+          Contexts.interceptCall(newContext, delegatedCall, headers, next)
         }
 
       }

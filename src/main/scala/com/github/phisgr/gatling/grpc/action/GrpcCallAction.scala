@@ -113,9 +113,12 @@ class GrpcCallAction[Req, Res](
 
     private[this] var grpcStatus: Status = _
     private[this] var trailers: Metadata = _
+    private[this] var resHeaders: Metadata = _
     private[this] var endTimestamp = 0L
 
-    override def onHeaders(headers: Metadata): Unit = {}
+    override def onHeaders(headers: Metadata): Unit = {
+      this.resHeaders = headers
+    }
 
     override def onMessage(message: Any): Unit = {
       if (null != body) {
@@ -135,7 +138,7 @@ class GrpcCallAction[Req, Res](
 
     override def run(): Unit = {
       val (checkSaveUpdated, checkError) = Check.check(
-        new GrpcResponse(body, grpcStatus, trailers),
+        new GrpcResponse(body, grpcStatus, trailers, resHeaders),
         session,
         resolvedChecks,
         // Not using preparedCache because the prepare step is cheap
@@ -176,7 +179,7 @@ class GrpcCallAction[Req, Res](
           .appendRequest(payload, headers)
           .appendWithEol("=========================")
           .appendWithEol("gRPC response:")
-          .appendResponse(bodyParsed, grpcStatus, trailers)
+          .appendResponse(bodyParsed, grpcStatus, trailers, resHeaders)
           .append("<<<<<<<<<<<<<<<<<<<<<<<<<")
           .toString
       }

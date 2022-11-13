@@ -9,7 +9,8 @@ class GrpcResponse[+T](
   // can be null if status is not OK, or in GrpcStreamEnd
   res: T,
   val status: Status,
-  val trailers: Metadata
+  val trailers: Metadata,
+  val resHeaders: Metadata
 ) {
   private[this] var _validation: Validation[T@uncheckedVariance] = _
 

@@ -48,7 +48,7 @@ class ServerStreamCall[Req, Res](
       )
     } catch {
       case NonFatal(e) =>
-        onServerCompleted(Status.ABORTED.withCause(e), new Metadata(), clock.nowMillis)
+        onServerCompleted(Status.ABORTED.withCause(e), new Metadata(), new Metadata(), clock.nowMillis)
     }
   }
 }

@@ -1,6 +1,7 @@
 package com.github.phisgr.example
 
 import com.github.phisgr.example.chat.{ChatMessage, ChatServiceGrpc}
+import com.github.phisgr.example.util.{CustomResponseHeaderKey, CustomResponseHeaderValue}
 import com.github.phisgr.gatling.grpc.Predef._
 import io.gatling.core.Predef._
 import io.grpc.{CallOptions, Status}
@@ -18,6 +19,7 @@ class ClientStreamingExample extends Simulation {
   val speaker = scenario("Speaker")
     .exec(
       clientStream.connect(ChatServiceGrpc.METHOD_BLACK_HOLE)
+        .check(resHeaders(CustomResponseHeaderKey).is(CustomResponseHeaderValue))
         .extract(_.some)(_ lte 100)
     )
     .repeat(_.userId.toInt) {
